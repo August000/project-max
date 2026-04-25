@@ -1,0 +1,70 @@
+// Copy this file to `config.h` and fill in your values.
+// `config.h` is .gitignored so your secrets never leave the device.
+#pragma once
+
+// ---------- Wi-Fi ----------
+#define WIFI_SSID       "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD   "YOUR_WIFI_PASSWORD"
+
+// ---------- Server (the Cloudflare Tunnel hostname) ----------
+//   Example: "abc-def-ghi.trycloudflare.com"
+//   Do NOT include "https://" or a path.
+#define SERVER_HOST          "your-tunnel-host.trycloudflare.com"
+#define SERVER_PORT          443
+#define SERVER_USE_TLS       true   // Cloudflare tunnels are always HTTPS
+
+// Must match DEVICE_SHARED_SECRET in the server's .env
+#define DEVICE_SHARED_SECRET "change-me-please"
+
+// Anything stable & unique per board (hostname, MAC, nickname, etc.)
+#define DEVICE_ID            "companion-01"
+
+// ---------- Audio ----------
+#define MIC_SAMPLE_RATE      16000   // INMP441 + Whisper STT
+#define SPK_SAMPLE_RATE      24000   // matches Gemini TTS PCM output
+#define MIC_GAIN_SHIFT       11      // 11..14 — smaller = louder
+
+// ---------- I2S Microphone (INMP441) pins ----------
+#define MIC_WS_PIN           41   // LRCLK
+#define MIC_SCK_PIN          42   // BCLK
+#define MIC_SD_PIN            2   // DATA in
+
+// ---------- I2S Amplifier (MAX98357) pins ----------
+#define SPK_LRC_PIN          21   // LRCLK
+#define SPK_BCLK_PIN         47   // BCLK
+#define SPK_DIN_PIN          14   // DATA out
+
+// ---------- TFT (Teyleten 1.28" GC9A01, 240x240 SPI) ----------
+//
+// The TFT_eSPI library is configured via its own User_Setup.h. This block is
+// for reference / consistency — see firmware/ai_companion/User_Setup_Excerpt.h
+// for what to copy into your TFT_eSPI install.
+//
+// IMPORTANT: these pins overlap with the Freenove board's microSD slot, so
+// don't insert an SD card while the TFT is connected.
+#define TFT_MOSI_PIN         38
+#define TFT_SCLK_PIN         39
+#define TFT_DC_PIN           40
+#define TFT_CS_PIN            1
+#define TFT_RST_PIN           3
+
+// ---------- Camera (Freenove ESP32-S3 WROOM CAM, OV2640) ----------
+#define CAM_PIN_PWDN         -1
+#define CAM_PIN_RESET        -1
+#define CAM_PIN_XCLK         15
+#define CAM_PIN_SIOD          4
+#define CAM_PIN_SIOC          5
+#define CAM_PIN_D7           16
+#define CAM_PIN_D6           17
+#define CAM_PIN_D5           18
+#define CAM_PIN_D4           12
+#define CAM_PIN_D3           10
+#define CAM_PIN_D2            8
+#define CAM_PIN_D1            9
+#define CAM_PIN_D0           11
+#define CAM_PIN_VSYNC         6
+#define CAM_PIN_HREF          7
+#define CAM_PIN_PCLK         13
+
+// Onboard LED (RGB WS2812 on Freenove board)
+#define STATUS_LED_PIN       48
