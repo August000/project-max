@@ -5,7 +5,7 @@
 // the agent calls the `take_picture` tool. Renders robot eyes on the
 // 1.28" GC9A01 TFT, driven by `{"type":"emotion","value":...}` messages.
 //
-// Required Arduino-ESP32 core: 3.0.0+
+// Required Arduino-ESP32 core: 2.0.x or 3.x (uses the legacy I2S driver).
 // Required libraries:
 //   - WebSockets (Markus Sattler / Links2004)   — Library Manager
 //   - ArduinoJson (Benoit Blanchon, v7+)        — Library Manager

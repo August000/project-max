@@ -41,14 +41,16 @@ All connections share the ESP32-S3 board's `GND` and `3.3V` (mic, TFT) / `5V` (a
 
 ### INMP441 microphone (I2S0, 16 kHz)
 
-| INMP441 | ESP32-S3 |
-|---------|----------|
-| VDD     | **3V3**  |
-| GND     | **GND**  |
-| L/R     | **GND**  *(selects left channel)* |
-| WS      | **GPIO 41** |
-| SCK     | **GPIO 42** |
-| SD      | **GPIO 2**  |
+| INMP441 | ESP32-S3 | (Freenove silkscreen) |
+|---------|----------|---|
+| VDD     | **3V3**  | |
+| GND     | **GND**  | |
+| L/R     | **GND**  | *(selects left channel)* |
+| WS      | **GPIO 38** | SD_CMD |
+| SCK     | **GPIO 39** | SD_CLK |
+| SD      | **GPIO 40** | SD_DATA |
+
+> The mic uses the on-board microSD slot's pins. I2S handles the SDIO pull-ups fine — just **don't insert an SD card** while the mic is wired.
 
 ### MAX98357 amplifier (I2S1, 24 kHz)
 
@@ -68,13 +70,13 @@ All connections share the ESP32-S3 board's `GND` and `3.3V` (mic, TFT) / `5V` (a
 |------|----------|-------|
 | VCC  | **3V3**  | |
 | GND  | **GND**  | |
-| SDA  | **GPIO 38** | MOSI |
-| SCL  | **GPIO 39** | SCK |
-| DC   | **GPIO 40** | data/command |
-| CS   | **GPIO 1**  | chip select |
-| RST  | **GPIO 3**  | reset (GPIO3 floats high at boot — OK) |
+| SDA  | **GPIO 42** | MOSI (free; was JTAG MTMS) |
+| SCL  | **GPIO 41** | SCK  (free; was JTAG MTDI) |
+| DC   | **GPIO 1**  | data/command |
+| CS   | **GPIO 2**  | chip select — onboard LED on this pin will blink during SPI transfers (cosmetic only) |
+| RST  | **3V3**     | **wire directly to 3.3V** — no GPIO. TFT_eSPI does a software reset over SPI. |
 
-> **⚠️ The TFT pins overlap the onboard microSD slot.** Don't insert an SD card while the TFT is wired — they share GPIOs 38/39/40.
+> The TFT shares no pins with the camera, microSD slot, USB, PSRAM, or boot strapping. The two SPI lines that look "weird" (41 and 42) are the JTAG pins, which only matter if you're debugging via external JTAG — Arduino/USB serial debugging is unaffected.
 
 ### Speaker
 
@@ -87,7 +89,7 @@ All connections share the ESP32-S3 board's `GND` and `3.3V` (mic, TFT) / `5V` (a
 
 OV2640 camera: GPIOs 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18. RGB LED: 48.
 
-> **Pin budget recap.** After camera + boot strapping (0, 45, 46) + USB (19, 20) + octal-PSRAM (35–37 on N16R8), the only safe free GPIOs are **1, 2, 3, 14, 21, 38, 39, 40, 41, 42, 47** — exactly the 11 we use.
+> **Pin budget recap.** After camera + boot strapping (0, 45, 46) + USB (19, 20) + octal-PSRAM (35–37) + on-board LEDs (43, 44, 48), the safe free GPIOs are **1, 2, 3, 14, 21, 38, 39, 40, 41, 42, 47**. We use 10 of them: mic on the SD slot pins (38/39/40), speaker on (21/47/14), TFT on (42/41/1/2). GPIO 3 stays free — it's a strapping pin, best avoided unless you have to.
 
 ---
 
@@ -141,7 +143,7 @@ curl https://<your-tunnel>.trycloudflare.com/health
 
 ### Arduino IDE prereqs
 
-1. Install **ESP32 by Espressif Systems**, **v3.0.0+** (Boards Manager → search "esp32").
+1. Install **ESP32 by Espressif Systems** (Boards Manager → search "esp32"). Either v2.x or v3.x works — the firmware uses the legacy I2S driver, which both cores ship.
 2. In the Library Manager, install:
    - **WebSockets** by Markus Sattler (Links2004)
    - **ArduinoJson** by Benoit Blanchon (v7+)
@@ -224,7 +226,18 @@ To add an emotion: add it to `EMOTIONS` + `TTS_DIRECTIVES` in `server/emotions.p
 
 ---
 
-## 6. Tuning knobs
+## 6. TFT not working? — debug ladder
+
+If the screen stays black, work through this in order:
+
+1. **Power.** Confirm VCC reads 3.3 V at the display, GND is solid, and TFT RST is jumpered to 3V3 (not floating). Some boards have a pull-down on RST that holds the display in reset until something drives it high.
+2. **Library config.** TFT_eSPI is configured at *library* compile time, not per sketch. After editing `User_Setup.h`, you MUST do "Sketch → Verify" to force a rebuild — re-uploading without verifying won't pick up the change. Confirm `GC9A01_DRIVER` is the only driver `#define` active and that `USE_HSPI_PORT` is **not** present (ESP32-S3 default SPI host is correct).
+3. **Wiring sanity test.** Run TFT_eSPI's built-in `TFT_Print_Test` example (File → Examples → TFT_eSPI → Generic). If that shows nothing either, the issue is wiring or `User_Setup.h` — fix that first before going back to `ai_companion`.
+4. **SPI speed.** Drop `SPI_FREQUENCY` in `User_Setup.h` from 40 MHz → 27 MHz → 20 MHz. Long jumper wires can't sustain 40 MHz cleanly.
+5. **MOSI/SCK swapped.** The display's silkscreen labels are `SDA` / `SCL` (which sound like I2C) but the part is SPI: SDA = MOSI, SCL = SCK. Swap if backwards.
+6. **DC and CS reversed.** A reversed pair gives a fully black or noisy screen, not a fully blank one. Double-check against the table above.
+
+## 7. Tuning knobs
 
 - **`MIC_GAIN_SHIFT`** in `config.h` — 11 (default) is loud; raise to 13/14 if Whisper hears clipping.
 - **`VAD_THRESHOLD` / `VAD_MIN_SILENCE_MS`** in `.env` — lower threshold = picks up quieter speech (more false starts); shorter silence = snappier turns (more accidental cuts).
@@ -235,7 +248,7 @@ To add an emotion: add it to `EMOTIONS` + `TTS_DIRECTIVES` in `server/emotions.p
 
 ---
 
-## 7. Day-to-day
+## 8. Day-to-day
 
 ```bash
 uv run uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload

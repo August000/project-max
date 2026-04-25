@@ -25,9 +25,12 @@
 #define MIC_GAIN_SHIFT       11      // 11..14 — smaller = louder
 
 // ---------- I2S Microphone (INMP441) pins ----------
-#define MIC_WS_PIN           41   // LRCLK
-#define MIC_SCK_PIN          42   // BCLK
-#define MIC_SD_PIN            2   // DATA in
+//
+// Wired through the Freenove board's microSD slot pins. I2S tolerates the
+// SDIO pull-ups on these lines fine; just don't insert an SD card.
+#define MIC_WS_PIN           38   // LRCLK   (was SD_CMD)
+#define MIC_SCK_PIN          39   // BCLK    (was SD_CLK)
+#define MIC_SD_PIN           40   // DATA in (was SD_DATA)
 
 // ---------- I2S Amplifier (MAX98357) pins ----------
 #define SPK_LRC_PIN          21   // LRCLK
@@ -36,17 +39,17 @@
 
 // ---------- TFT (Teyleten 1.28" GC9A01, 240x240 SPI) ----------
 //
-// The TFT_eSPI library is configured via its own User_Setup.h. This block is
-// for reference / consistency — see firmware/ai_companion/User_Setup_Excerpt.h
-// for what to copy into your TFT_eSPI install.
+// TFT_eSPI is configured at LIBRARY-COMPILE time via its own User_Setup.h —
+// see firmware/ai_companion/User_Setup_Excerpt.h. The pins MUST match.
 //
-// IMPORTANT: these pins overlap with the Freenove board's microSD slot, so
-// don't insert an SD card while the TFT is connected.
-#define TFT_MOSI_PIN         38
-#define TFT_SCLK_PIN         39
-#define TFT_DC_PIN           40
-#define TFT_CS_PIN            1
-#define TFT_RST_PIN           3
+// IMPORTANT: tie the TFT module's RST pin DIRECTLY TO 3V3. We don't burn a
+// GPIO on hardware reset — TFT_eSPI does a software reset over SPI instead
+// (which is why TFT_RST is set to -1 in the User_Setup).
+#define TFT_MOSI_PIN         42   // (JTAG MTMS — unused unless debugging)
+#define TFT_SCLK_PIN         41   // (JTAG MTDI — unused unless debugging)
+#define TFT_DC_PIN            1
+#define TFT_CS_PIN            2   // (the onboard LED on this pin will blink during SPI)
+// TFT_RST: NOT a GPIO. Hardware-tie the display's RST pin to 3V3.
 
 // ---------- Camera (Freenove ESP32-S3 WROOM CAM, OV2640) ----------
 #define CAM_PIN_PWDN         -1
