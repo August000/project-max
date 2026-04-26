@@ -41,16 +41,14 @@ All connections share the ESP32-S3 board's `GND` and `3.3V` (mic, TFT) / `5V` (a
 
 ### INMP441 microphone (I2S0, 16 kHz)
 
-| INMP441 | ESP32-S3 | (Freenove silkscreen) |
-|---------|----------|---|
-| VDD     | **3V3**  | |
-| GND     | **GND**  | |
-| L/R     | **GND**  | *(selects left channel)* |
-| WS      | **GPIO 38** | SD_CMD |
-| SCK     | **GPIO 39** | SD_CLK |
-| SD      | **GPIO 40** | SD_DATA |
-
-> The mic uses the on-board microSD slot's pins. I2S handles the SDIO pull-ups fine — just **don't insert an SD card** while the mic is wired.
+| INMP441 | ESP32-S3 |
+|---------|----------|
+| VDD     | **3V3**  |
+| GND     | **GND**  |
+| L/R     | **GND**  *(selects left channel)* |
+| WS      | **GPIO 41** |
+| SCK     | **GPIO 42** |
+| SD      | **GPIO 2**  |
 
 ### MAX98357 amplifier (I2S1, 24 kHz)
 
@@ -70,13 +68,13 @@ All connections share the ESP32-S3 board's `GND` and `3.3V` (mic, TFT) / `5V` (a
 |------|----------|-------|
 | VCC  | **3V3**  | |
 | GND  | **GND**  | |
-| SDA  | **GPIO 42** | MOSI (free; was JTAG MTMS) |
-| SCL  | **GPIO 41** | SCK  (free; was JTAG MTDI) |
-| DC   | **GPIO 1**  | data/command |
-| CS   | **GPIO 2**  | chip select — onboard LED on this pin will blink during SPI transfers (cosmetic only) |
-| RST  | **3V3**     | **wire directly to 3.3V** — no GPIO. TFT_eSPI does a software reset over SPI. |
+| SDA  | **GPIO 38** | MOSI |
+| SCL  | **GPIO 39** | SCK |
+| DC   | **GPIO 40** | data/command |
+| CS   | **GPIO 1**  | chip select |
+| RST  | **GPIO 3**  | reset (GPIO3 floats high at boot — OK) |
 
-> The TFT shares no pins with the camera, microSD slot, USB, PSRAM, or boot strapping. The two SPI lines that look "weird" (41 and 42) are the JTAG pins, which only matter if you're debugging via external JTAG — Arduino/USB serial debugging is unaffected.
+> **⚠️ The TFT pins overlap the onboard microSD slot.** Don't insert an SD card while the TFT is wired — they share GPIOs 38/39/40.
 
 ### Speaker
 
@@ -89,7 +87,7 @@ All connections share the ESP32-S3 board's `GND` and `3.3V` (mic, TFT) / `5V` (a
 
 OV2640 camera: GPIOs 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18. RGB LED: 48.
 
-> **Pin budget recap.** After camera + boot strapping (0, 45, 46) + USB (19, 20) + octal-PSRAM (35–37) + on-board LEDs (43, 44, 48), the safe free GPIOs are **1, 2, 3, 14, 21, 38, 39, 40, 41, 42, 47**. We use 10 of them: mic on the SD slot pins (38/39/40), speaker on (21/47/14), TFT on (42/41/1/2). GPIO 3 stays free — it's a strapping pin, best avoided unless you have to.
+> **Pin budget recap.** After camera + boot strapping (0, 45, 46) + USB (19, 20) + octal-PSRAM (35–37 on N16R8), the only safe free GPIOs are **1, 2, 3, 14, 21, 38, 39, 40, 41, 42, 47** — exactly the 11 we use.
 
 ---
 

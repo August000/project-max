@@ -5,8 +5,8 @@
 // HOW TO USE:
 //   1. Locate your TFT_eSPI library install:
 //        macOS:  ~/Documents/Arduino/libraries/TFT_eSPI/
-//   2. Open `User_Setup.h`. Replace its contents with the block below.
-//      (Or comment out everything in it and paste this on top.)
+//   2. Open `User_Setup.h`. Replace its contents with the block below
+//      (or comment out everything in it and paste this on top).
 //   3. Save. Re-compile your sketch — TFT_eSPI is configured at LIBRARY
 //      compile time, so any change here forces a rebuild.
 //
@@ -21,11 +21,11 @@
 #define TFT_HEIGHT 240
 
 // SPI pins.
-#define TFT_MOSI  42    // display SDA
-#define TFT_SCLK  41    // display SCL
-#define TFT_DC     1
-#define TFT_CS     2
-#define TFT_RST   -1    // hardware: tie display RST to 3V3 (no GPIO needed)
+#define TFT_MOSI  38    // display SDA
+#define TFT_SCLK  39    // display SCL
+#define TFT_DC    40
+#define TFT_CS     1
+#define TFT_RST    3
 #define TFT_MISO  -1    // GC9A01 is write-only
 
 // Fonts (only what we use — keeps binary small).
